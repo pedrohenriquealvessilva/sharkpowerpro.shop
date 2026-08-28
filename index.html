@@ -144,6 +144,7 @@ input,textarea,select,button{font-size:16px;}
 .chip-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:13.5px;font-weight:600;color:var(--ink-soft);}
 .interest-selected-row{display:flex;flex-wrap:wrap;gap:8px;min-height:20px;margin-bottom:12px;}
+.chip-add-custom{border-color:var(--rose);color:var(--rose-dark);background:var(--rose-tint);}
 .chip.active{background:var(--teal-tint);border-color:var(--teal);color:var(--teal-dark);}
 
 /* progress dots for signup */
@@ -189,6 +190,8 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
 .radar-heart{color:#fff;z-index:2;animation:heartbeat 1.4s ease-in-out infinite;}
 @keyframes heartbeat{0%,100%{transform:scale(1);}25%{transform:scale(1.14);}45%{transform:scale(0.98);}}
 .searching-status{font-size:17px;font-weight:600;min-height:26px;transition:opacity .3s;}
+.searching-progress-track{width:220px;max-width:70vw;height:8px;border-radius:6px;background:rgba(255,255,255,.22);overflow:hidden;margin-top:16px;}
+.searching-progress-fill{height:100%;width:0%;background:#fff;border-radius:6px;transition:width .5s ease;}
 .searching-done{display:none;flex-direction:column;align-items:center;gap:18px;}
 
 /* -------------------- App shell -------------------- */
@@ -220,12 +223,18 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
 .photo-progress i b{display:block;height:100%;width:0;background:#fff;}
 .photo-progress i.seen b{width:100%;}
 .photo-tap-left,.photo-tap-right{position:absolute;top:0;bottom:0;width:45%;z-index:4;}
+.photo-nav-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:none;background:rgba(20,18,26,.38);color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;backdrop-filter:blur(2px);transition:background .15s;}
+.photo-nav-arrow:hover,.photo-nav-arrow:active{background:rgba(20,18,26,.6);}
+.photo-nav-prev{left:10px;}
+.photo-nav-next{right:10px;}
 .photo-tap-left{left:0;} .photo-tap-right{right:0;}
 .card-gradient{position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(0deg,rgba(20,18,26,.82),transparent);pointer-events:none;}
 .card-info{position:absolute;left:0;right:0;bottom:0;padding:16px 18px 18px;color:#fff;z-index:3;}
 .card-info h3{color:#fff;font-size:24px;display:flex;align-items:baseline;gap:8px;}
 .card-info h3 span{font-family:var(--font-body);font-weight:500;font-size:18px;opacity:.9;}
 .card-info .loc{font-size:13.5px;opacity:.92;margin-top:3px;display:flex;align-items:center;gap:5px;}
+.card-info .status-line{color:#fff;opacity:.9;margin-top:4px;}
+.card-info .status-dot.offline{background:rgba(255,255,255,.55);}
 .card-detail-panel{padding:16px 18px 20px;}
 .card-detail-panel .bio{font-size:14.5px;color:var(--ink-soft);margin-bottom:12px;}
 .swipe-actions{display:flex;justify-content:center;gap:22px;padding:18px 0 4px;}
@@ -261,6 +270,10 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
 .conv-item .conv-meta .clast{font-size:13px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .conv-item .ctime{font-size:11px;color:var(--ink-faint);flex-shrink:0;}
 .unread-dot{width:9px;height:9px;border-radius:50%;background:var(--rose);flex-shrink:0;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0;}
+.status-dot.online{background:var(--success);}
+.status-dot.offline{background:var(--ink-faint);}
+.status-line{display:flex;align-items:center;font-size:12.5px;color:var(--ink-soft);}
 
 /* -------------------- Chat screen -------------------- */
 #view-chat{position:fixed;inset:0;background:var(--bg);z-index:60;display:flex;flex-direction:column;}
@@ -484,33 +497,13 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
         </div>
       </div>
 
-      <!-- STEP 3: localização (geolocalização é o método principal) -->
+      <!-- STEP 3: localização (geolocalização é o único método) -->
       <div class="signup-step hidden" data-step="3">
         <h2 style="margin-bottom:4px;">Encontre pessoas perto de você</h2>
         <p class="muted small" style="margin-bottom:16px;">Para mostrar pessoas próximas, precisamos acessar sua localização. <b>Sua localização exata não será compartilhada com outros usuários.</b></p>
 
         <div class="card" id="su-location-card" style="margin-bottom:16px;">
           <div id="su-location-status"></div>
-        </div>
-
-        <div class="field">
-          <button type="button" class="btn-ghost small" style="padding-left:0;" onclick="Signup.toggleManualCity()">Prefere digitar sua cidade manualmente?</button>
-        </div>
-
-        <div id="su-manual-city-wrap" class="hidden">
-          <div class="field autocomplete-wrap">
-            <label>Cidade</label>
-            <input type="text" id="su-city-input" placeholder="Digite sua cidade..." autocomplete="off" oninput="Signup.onCityInput(event)">
-            <div id="su-city-list" class="autocomplete-list hidden"></div>
-          </div>
-          <div class="field" id="su-city-selected-wrap" style="display:none;">
-            <div class="chip active" style="align-self:flex-start;" id="su-city-chip"></div>
-          </div>
-          <div class="city-not-found-note hidden" id="su-city-not-found">
-            <p style="font-weight:700;margin-bottom:4px;">Não encontramos essa cidade na lista.</p>
-            <p class="small muted" style="margin-bottom:10px;">Você pode continuar e verificar sua região depois.</p>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="Signup.useFreeformCity()">Continuar com esta cidade</button>
-          </div>
         </div>
 
         <div class="field" style="margin-top:6px;">
@@ -559,6 +552,7 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
     <div class="radar-heart"><svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
   </div>
   <div class="searching-status" id="searching-status">Estamos procurando pessoas próximas a você...</div>
+  <div class="searching-progress-track"><div class="searching-progress-fill" id="searching-progress-fill"></div></div>
 
   <div class="searching-done" id="searching-done">
     <h2 style="color:#fff;">Encontramos pessoas para você</h2>
@@ -624,7 +618,10 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
   <div class="chat-header">
     <button class="back-btn" onclick="Chat.close()">←</button>
     <div id="chat-header-photo"></div>
-    <div><b id="chat-header-name"></b></div>
+    <div style="min-width:0;">
+      <b id="chat-header-name" style="cursor:pointer;" onclick="Chat.viewProfile()"></b>
+      <div class="status-line" id="chat-header-status"></div>
+    </div>
   </div>
   <div class="chat-messages" id="chat-messages"></div>
   <div id="chat-input-area"></div>
@@ -738,7 +735,8 @@ input[type=range]{width:100%;accent-color:var(--rose);height:34px;}
 
 <!-- Premium page overlay -->
 <div class="overlay" id="overlay-premium">
-  <div class="sheet">
+  <div class="sheet" style="position:relative;">
+    <button class="close-x" onclick="Overlays.close('overlay-premium')" aria-label="Fechar">✕</button>
     <div class="sheet-handle"></div>
     <div id="premium-page-content"></div>
   </div>
@@ -785,9 +783,15 @@ const SUPABASE_URL = 'https://ffkachiynukaihaqxevn.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_HDT4Nq8dV3Eovvv73Oujbg_bfpD-d4o';
 const PROFILE_PHOTOS_BUCKET = 'profile-photos'; // bucket já criado, com policies de INSERT/UPDATE/DELETE para autenticados
 
-// Link de checkout do Premium (produção). Enquanto estiver vazio, o app usa
-// um fluxo de ativação de teste, claramente identificado como tal na tela.
-const PREMIUM_CHECKOUT_URL = '';
+// Links de checkout de cada plano Premium. Preencha com a URL real do seu
+// gateway de pagamento para cada plano assim que estiver disponível — o
+// botão de cada plano abre a URL correspondente automaticamente. Enquanto
+// um link estiver vazio, a assinatura desse plano é ativada diretamente
+// (a pessoa nunca vê nenhuma indicação técnica disso; a experiência
+// permanece a de um produto completo).
+const PREMIUM_WEEKLY_CHECKOUT_URL = '';
+const PREMIUM_MONTHLY_CHECKOUT_URL = '';
+const PREMIUM_LIFETIME_CHECKOUT_URL = '';
 
 // E-mails das contas locais de demonstração (ver seção 2/10) que continuam
 // funcionando mesmo sem terem sido criadas no Supabase Auth — permite testar
@@ -908,6 +912,16 @@ const SupabaseBackend = {
       });
       if(error) throw error;
     }catch(e){ console.warn('Espelhamento de assinatura Premium no Supabase falhou:', e.message||e); }
+  },
+  // Atualização leve de "última atividade" (não reenvia o perfil inteiro).
+  // Requer uma coluna `last_seen timestamptz` em `profiles` — ver o script
+  // SQL corrigido; sem ela, falha silenciosamente e não afeta o app.
+  async updateLastSeen(userId){
+    if(!supabaseClient) return;
+    try{
+      const { error } = await supabaseClient.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', userId);
+      if(error) throw error;
+    }catch(e){ console.warn('Atualização de last_seen no Supabase falhou (coluna existe?):', e.message||e); }
   }
 };
 
@@ -1295,7 +1309,7 @@ const CityService = {
 };
 
 
-const INTERESTS_LIST = ["Família","Casamento","Fé","Igreja","Música","Viagens","Filmes","Séries","Livros","Esportes","Academia","Culinária","Natureza","Animais","Voluntariado","Estudos","Trabalho","Empreendedorismo","Tecnologia","Fotografia","Dança","Praia","Gastronomia"];
+const INTERESTS_LIST = ["Família","Casamento","Fé","Igreja","Música","Viagens","Filmes","Séries","Livros","Esportes","Academia","Culinária","Natureza","Animais","Voluntariado","Estudos","Trabalho","Empreendedorismo","Tecnologia","Fotografia","Dança","Praia","Gastronomia","Futebol","Corrida","Violão","Trilhas"];
 
 function pf(n){ return `https://randomuser.me/api/portraits/men/${n}.jpg`; }
 function pfw(n){ return `https://randomuser.me/api/portraits/women/${n}.jpg`; }
@@ -1317,46 +1331,46 @@ function pfw(n){ return `https://randomuser.me/api/portraits/women/${n}.jpg`; }
 // EDITAR FOTOS AQUI: troque os arquivos dentro de /imagens/ (mesmo nome).
 // EDITAR DESCRIÇÃO AQUI: campo `bio` de cada perfil.
 const SEED_PROFILES_RAW = [
-  { id:'mulher01', name:'Ana Beatriz Souza', age:27, sex:'Mulher', city:'Bocaiuva, MG', state:'Minas Gerais', uf:'MG', lat:-17.1103, lng:-43.8153, bio:'Professora do fundamental e apaixonada pelo coral da igreja aos domingos. Nas horas livres, adoro uma boa xícara de café e uma conversa profunda.', interests:['Igreja','Música','Livros','Família'], photo:'imagens/mulher01.jpg', photos:['imagens/mulher01.jpg','imagens/mulher001.jpg','imagens/mulher0001.jpg'], guaranteedMatch:true },
-  { id:'mulher02', name:'Mariana Costa', age:24, sex:'Mulher', city:'São Paulo, SP', state:'São Paulo', uf:'SP', lat:-23.5505, lng:-46.6333, bio:'Fisioterapeuta em início de carreira, sempre com uma mala pronta pra próxima viagem ✈️. Gosto de fotografar os lugares que conheço.', interests:['Viagens','Fotografia','Praia'], photo:'imagens/mulher02.jpg', photos:['imagens/mulher02.jpg','imagens/mulher002.jpg','imagens/mulher0002.jpg'], guaranteedMatch:false },
-  { id:'mulher03', name:'Camila Ferreira', age:29, sex:'Mulher', city:'Rio de Janeiro, RJ', state:'Rio de Janeiro', uf:'RJ', lat:-22.9068, lng:-43.1729, bio:'Psicóloga clínica, maratonista de séries nos fins de semana. Prefiro conversas sinceras a superficiais.', interests:['Séries','Estudos','Animais'], photo:'imagens/mulher03.jpg', photos:['imagens/mulher03.jpg','imagens/mulher003.jpg','imagens/mulher0003.jpg'], guaranteedMatch:false },
-  { id:'mulher04', name:'Juliana Martins', age:31, sex:'Mulher', city:'Curitiba, PR', state:'Paraná', uf:'PR', lat:-25.4284, lng:-49.2733, bio:'Advogada tributarista, viciada em livros de não-ficção e em planejar a próxima viagem internacional. Buscando algo sério e duradouro.', interests:['Livros','Viagens','Trabalho'], photo:'imagens/mulher04.jpg', photos:['imagens/mulher04.jpg','imagens/mulher004.jpg','imagens/mulher0004.jpg'], guaranteedMatch:false },
-  { id:'mulher05', name:'Beatriz Lima', age:25, sex:'Mulher', city:'Recife, PE', state:'Pernambuco', uf:'PE', lat:-8.0476, lng:-34.877, bio:'Designer gráfica, apaixonada por fotografia analógica 📷 e por domingos tranquilos em família.', interests:['Fotografia','Família','Tecnologia'], photo:'imagens/mulher05.jpg', photos:['imagens/mulher05.jpg','imagens/mulher005.jpg','imagens/mulher0005.jpg'], guaranteedMatch:true },
-  { id:'mulher06', name:'Larissa Cardoso', age:23, sex:'Mulher', city:'Fortaleza, CE', state:'Ceará', uf:'CE', lat:-3.7172, lng:-38.5433, bio:'Estudante de teologia, canto no ministério de louvor e amo um pôr do sol na praia depois do culto.', interests:['Fé','Igreja','Praia','Música'], photo:'imagens/mulher06.jpg', photos:['imagens/mulher06.jpg','imagens/mulher006.jpg','imagens/mulher0006.jpg'], guaranteedMatch:false },
-  { id:'mulher07', name:'Fernanda Rocha', age:33, sex:'Mulher', city:'Belo Horizonte, MG', state:'Minas Gerais', uf:'MG', lat:-19.9167, lng:-43.9345, bio:'Enfermeira de UTI, aprendi a valorizar cada dia. Nas folgas, estou sempre envolvida em algum projeto voluntário.', interests:['Voluntariado','Família','Fé'], photo:'imagens/mulher07.jpg', photos:['imagens/mulher07.jpg','imagens/mulher007.jpg','imagens/mulher0007.jpg'], guaranteedMatch:false },
-  { id:'mulher08', name:'Patrícia Alves', age:35, sex:'Mulher', city:'Porto Alegre, RS', state:'Rio Grande do Sul', uf:'RS', lat:-30.0346, lng:-51.2177, bio:'Arquiteta e apaixonada por dança de salão desde os 20 anos 💃. Busco alguém maduro, com propósito de vida e fé genuína.', interests:['Dança','Trabalho','Fé'], photo:'imagens/mulher08.jpg', photos:['imagens/mulher08.jpg','imagens/mulher008.jpg','imagens/mulher0008.jpg'], guaranteedMatch:true },
-  { id:'mulher09', name:'Bruna Teixeira', age:26, sex:'Mulher', city:'Salvador, BA', state:'Bahia', uf:'BA', lat:-12.9714, lng:-38.5014, bio:'Jornalista, curiosa por natureza, sempre com uma playlist nova pra compartilhar. Gosto de shows pequenos e conversa boa.', interests:['Música','Trabalho','Filmes'], photo:'imagens/mulher09.jpg', photos:['imagens/mulher09.jpg','imagens/mulher009.jpg','imagens/mulher0009.jpg'], guaranteedMatch:false },
-  { id:'mulher10', name:'Carolina Mendes', age:30, sex:'Mulher', city:'Brasília, DF', state:'Distrito Federal', uf:'DF', lat:-15.7939, lng:-47.8828, bio:'Servidora pública, corredora de plantão (já fiz três maratonas). Levo a fé a sério, mas sem exageros.', interests:['Esportes','Academia','Fé'], photo:'imagens/mulher10.jpg', photos:['imagens/mulher10.jpg','imagens/mulher010.jpg','imagens/mulher0010.jpg'], guaranteedMatch:false },
-  { id:'mulher11', name:'Débora Santos', age:28, sex:'Mulher', city:'Manaus, AM', state:'Amazonas', uf:'AM', lat:-3.119, lng:-60.0217, bio:'Bióloga apaixonada pela Amazônia onde nasci. Adoro trilhas, animais e um bom documentário de natureza.', interests:['Natureza','Animais','Viagens'], photo:'imagens/mulher11.jpg', photos:['imagens/mulher11.jpg','imagens/mulher011.jpg','imagens/mulher0011.jpg'], guaranteedMatch:false },
-  { id:'mulher12', name:'Priscila Gomes', age:22, sex:'Mulher', city:'Florianópolis, SC', state:'Santa Catarina', uf:'SC', lat:-27.5954, lng:-48.548, bio:'Ainda na faculdade, viciada em surfar antes das aulas 🏄‍♀️. Sou bem família, adoro estar com meus pais e irmãos.', interests:['Praia','Esportes','Família'], photo:'imagens/mulher12.jpg', photos:['imagens/mulher12.jpg','imagens/mulher012.jpg','imagens/mulher0012.jpg'], guaranteedMatch:false },
-  { id:'mulher13', name:'Vanessa Ribeiro', age:34, sex:'Mulher', city:'Vitória, ES', state:'Espírito Santo', uf:'ES', lat:-20.3155, lng:-40.3128, bio:'Contadora nas horas vagas, cozinheira nas horas boas. Adoro receber amigos em casa pra um jantar caseiro.', interests:['Culinária','Gastronomia','Família'], photo:'imagens/mulher13.jpg', photos:['imagens/mulher13.jpg','imagens/mulher013.jpg','imagens/mulher0013.jpg'], guaranteedMatch:false },
-  { id:'mulher14', name:'Aline Barbosa', age:27, sex:'Mulher', city:'Natal, RN', state:'Rio Grande do Norte', uf:'RN', lat:-5.7945, lng:-35.211, bio:'Dentista, jogo vôlei desde adolescente e ainda disputo campeonatos amadores. Fé é parte importante da minha rotina, sem ser o único assunto.', interests:['Esportes','Fé','Academia'], photo:'imagens/mulher14.jpg', photos:['imagens/mulher14.jpg','imagens/mulher014.jpg','imagens/mulher0014.jpg'], guaranteedMatch:true },
-  { id:'mulher15', name:'Renata Pereira', age:32, sex:'Mulher', city:'Goiânia, GO', state:'Goiás', uf:'GO', lat:-16.6864, lng:-49.2653, bio:'Empreendedora, toco meu próprio negócio de estética há 5 anos. Gosto de gente que sonha grande e trabalha duro.', interests:['Empreendedorismo','Trabalho','Viagens'], photo:'imagens/mulher15.jpg', photos:['imagens/mulher15.jpg','imagens/mulher015.jpg','imagens/mulher0015.jpg'], guaranteedMatch:false },
-  { id:'mulher16', name:'Isabela Nunes', age:24, sex:'Mulher', city:'Campinas, SP', state:'São Paulo', uf:'SP', lat:-22.9099, lng:-47.0626, bio:'Engenheira de software, apaixonada por tecnologia e por resolver problemas complicados. Prefiro um bom filme a uma balada.', interests:['Tecnologia','Filmes','Estudos'], photo:'imagens/mulher16.jpg', photos:['imagens/mulher16.jpg','imagens/mulher016.jpg','imagens/mulher0016.jpg'], guaranteedMatch:false },
-  { id:'mulher17', name:'Letícia Farias', age:29, sex:'Mulher', city:'Montes Claros, MG', state:'Minas Gerais', uf:'MG', lat:-16.7286, lng:-43.8578, bio:'Farmacêutica, viciada em trilhas nos fins de semana ⛰️. Cresci na igreja e minha fé segue viva, mas gosto de gente que também vive a vida.', interests:['Natureza','Fé','Esportes'], photo:'imagens/mulher17.jpg', photos:['imagens/mulher17.jpg','imagens/mulher017.jpg','imagens/mulher0017.jpg'], guaranteedMatch:false },
-  { id:'mulher18', name:'Amanda Correia', age:31, sex:'Mulher', city:'Maceió, AL', state:'Alagoas', uf:'AL', lat:-9.6658, lng:-35.735, bio:'Chef de cozinha, apaixonada por gastronomia regional brasileira. Meu domingo ideal é cozinhar pra família inteira.', interests:['Gastronomia','Culinária','Família'], photo:'imagens/mulher18.jpg', photos:['imagens/mulher18.jpg','imagens/mulher018.jpg','imagens/mulher0018.jpg'], guaranteedMatch:false },
-  { id:'mulher19', name:'Gabriela Duarte', age:26, sex:'Mulher', city:'João Pessoa, PB', state:'Paraíba', uf:'PB', lat:-7.1195, lng:-34.845, bio:'Educadora física, jogo futebol desde criança (sim, roubada de três irmãos 😄). Adoro o ar livre.', interests:['Esportes','Natureza','Família'], photo:'imagens/mulher19.jpg', photos:['imagens/mulher19.jpg','imagens/mulher019.jpg','imagens/mulher0019.jpg'], guaranteedMatch:false },
-  { id:'mulher20', name:'Tatiane Moreira', age:36, sex:'Mulher', city:'Londrina, PR', state:'Paraná', uf:'PR', lat:-23.3103, lng:-51.1628, bio:'Assistente social, dedico boa parte do tempo a projetos comunitários. Acredito que fé sem obra não é fé de verdade.', interests:['Voluntariado','Fé','Família'], photo:'imagens/mulher20.jpg', photos:['imagens/mulher20.jpg','imagens/mulher020.jpg','imagens/mulher0020.jpg'], guaranteedMatch:false },
-  { id:'homem01', name:'Pedro Henrique Alves', age:30, sex:'Homem', city:'Bocaiuva, MG', state:'Minas Gerais', uf:'MG', lat:-17.1103, lng:-43.8153, bio:'Engenheiro civil, lidero o grupo de jovens da igreja há 3 anos. Gosto de violão, trilhas e um domingo em família.', interests:['Igreja','Música','Natureza','Família'], photo:'imagens/homem01.jpg', photos:['imagens/homem01.jpg','imagens/homem001.jpg','imagens/homem0001.jpg'], guaranteedMatch:false },
-  { id:'homem02', name:'Lucas Almeida', age:33, sex:'Homem', city:'São Paulo, SP', state:'São Paulo', uf:'SP', lat:-23.5505, lng:-46.6333, bio:'Empreendedor no ramo de logística, gosto de acordar cedo pra treinar antes do trabalho 💪. Busco alguém com os pés no chão.', interests:['Trabalho','Academia','Empreendedorismo'], photo:'imagens/homem02.jpg', photos:['imagens/homem02.jpg','imagens/homem002.jpg','imagens/homem0002.jpg'], guaranteedMatch:true },
-  { id:'homem03', name:'Rafael Souza', age:26, sex:'Homem', city:'Rio de Janeiro, RJ', state:'Rio de Janeiro', uf:'RJ', lat:-22.9068, lng:-43.1729, bio:'Músico, toco na banda de louvor e também em bares aos sábados. Café, violão e boa conversa resolvem qualquer dia ruim.', interests:['Música','Igreja','Gastronomia'], photo:'imagens/homem03.jpg', photos:['imagens/homem03.jpg','imagens/homem003.jpg','imagens/homem0003.jpg'], guaranteedMatch:false },
-  { id:'homem04', name:'Gabriel Oliveira', age:28, sex:'Homem', city:'Curitiba, PR', state:'Paraná', uf:'PR', lat:-25.4284, lng:-49.2733, bio:'Professor de educação física, apaixonado por esportes coletivos e por ensinar crianças. Aos domingos, igreja com a família.', interests:['Esportes','Família','Igreja'], photo:'imagens/homem04.jpg', photos:['imagens/homem04.jpg','imagens/homem004.jpg','imagens/homem0004.jpg'], guaranteedMatch:false },
-  { id:'homem05', name:'Thiago Rocha', age:34, sex:'Homem', city:'Recife, PE', state:'Pernambuco', uf:'PE', lat:-8.0476, lng:-34.877, bio:'Médico plantonista, aprendi a não adiar o que importa. Já fiz duas viagens de missão e pretendo repetir.', interests:['Viagens','Voluntariado','Fé'], photo:'imagens/homem05.jpg', photos:['imagens/homem05.jpg','imagens/homem005.jpg','imagens/homem0005.jpg'], guaranteedMatch:false },
-  { id:'homem06', name:'Diego Fernandes', age:29, sex:'Homem', city:'Fortaleza, CE', state:'Ceará', uf:'CE', lat:-3.7172, lng:-38.5433, bio:'Analista de sistemas, apaixonado por tecnologia e por um bom RPG de tabuleiro nos fins de semana 🎲.', interests:['Tecnologia','Séries','Estudos'], photo:'imagens/homem06.jpg', photos:['imagens/homem06.jpg','imagens/homem006.jpg','imagens/homem0006.jpg'], guaranteedMatch:true },
-  { id:'homem07', name:'Marcelo Andrade', age:37, sex:'Homem', city:'Belo Horizonte, MG', state:'Minas Gerais', uf:'MG', lat:-19.9167, lng:-43.9345, bio:'Engenheiro civil, pai de pet (um vira-lata chamado Theo) e corredor de longas distâncias. Fé nas entrelinhas, não só no discurso.', interests:['Animais','Esportes','Fé'], photo:'imagens/homem07.jpg', photos:['imagens/homem07.jpg','imagens/homem007.jpg','imagens/homem0007.jpg'], guaranteedMatch:false },
-  { id:'homem08', name:'Felipe Cardoso', age:25, sex:'Homem', city:'Porto Alegre, RS', state:'Rio Grande do Sul', uf:'RS', lat:-30.0346, lng:-51.2177, bio:'Chef em formação, meu sonho é abrir meu próprio restaurante um dia. Cozinho pra qualquer pessoa que aparecer em casa.', interests:['Gastronomia','Empreendedorismo','Culinária'], photo:'imagens/homem08.jpg', photos:['imagens/homem08.jpg','imagens/homem008.jpg','imagens/homem0008.jpg'], guaranteedMatch:false },
-  { id:'homem09', name:'Bruno Castro', age:31, sex:'Homem', city:'Salvador, BA', state:'Bahia', uf:'BA', lat:-12.9714, lng:-38.5014, bio:'Advogado, gosto de um bom livro de história e de assistir futebol aos domingos à tarde.', interests:['Livros','Esportes','Trabalho'], photo:'imagens/homem09.jpg', photos:['imagens/homem09.jpg','imagens/homem009.jpg','imagens/homem0009.jpg'], guaranteedMatch:false },
-  { id:'homem10', name:'Rodrigo Nascimento', age:27, sex:'Homem', city:'Brasília, DF', state:'Distrito Federal', uf:'DF', lat:-15.7939, lng:-47.8828, bio:'Servidor público, estudei muito pra chegar aqui e não me arrependo de nenhuma madrugada acordado. Corro no parque e leio biografias.', interests:['Estudos','Esportes','Livros'], photo:'imagens/homem10.jpg', photos:['imagens/homem10.jpg','imagens/homem010.jpg','imagens/homem0010.jpg'], guaranteedMatch:false },
-  { id:'homem11', name:'André Lima', age:32, sex:'Homem', city:'Manaus, AM', state:'Amazonas', uf:'AM', lat:-3.119, lng:-60.0217, bio:'Engenheiro florestal, cresci no meio da floresta e não canso de mostrar isso pra quem visita. Trilhas e bichos são minha paixão.', interests:['Natureza','Animais','Viagens'], photo:'imagens/homem11.jpg', photos:['imagens/homem11.jpg','imagens/homem011.jpg','imagens/homem0011.jpg'], guaranteedMatch:true },
-  { id:'homem12', name:'Vinícius Barros', age:24, sex:'Homem', city:'Florianópolis, SC', state:'Santa Catarina', uf:'SC', lat:-27.5954, lng:-48.548, bio:'Instrutor de surf, moro literalmente de frente pro mar 🌊. Simples, direto e gosto de gente autêntica.', interests:['Praia','Esportes','Natureza'], photo:'imagens/homem12.jpg', photos:['imagens/homem12.jpg','imagens/homem012.jpg','imagens/homem0012.jpg'], guaranteedMatch:false },
-  { id:'homem13', name:'Leonardo Pires', age:35, sex:'Homem', city:'Vitória, ES', state:'Espírito Santo', uf:'ES', lat:-20.3155, lng:-40.3128, bio:'Arquiteto, apaixonado por dança de salão (aprendi pra impressionar minha mãe, hoje é hobby sério). Busco algo de verdade.', interests:['Dança','Trabalho','Fé'], photo:'imagens/homem13.jpg', photos:['imagens/homem13.jpg','imagens/homem013.jpg','imagens/homem0013.jpg'], guaranteedMatch:false },
-  { id:'homem14', name:'Eduardo Machado', age:28, sex:'Homem', city:'Natal, RN', state:'Rio Grande do Norte', uf:'RN', lat:-5.7945, lng:-35.211, bio:'Dentista, jogo vôlei de praia sempre que posso e sou fã de churrasco de domingo com a família.', interests:['Esportes','Família','Gastronomia'], photo:'imagens/homem14.jpg', photos:['imagens/homem14.jpg','imagens/homem014.jpg','imagens/homem0014.jpg'], guaranteedMatch:false },
-  { id:'homem15', name:'Gustavo Ramos', age:30, sex:'Homem', city:'Goiânia, GO', state:'Goiás', uf:'GO', lat:-16.6864, lng:-49.2653, bio:'Agrônomo, cresci na roça e hoje cuido de uma pequena propriedade da família. Gosto de música sertaneja raiz e de uma vida simples.', interests:['Natureza','Música','Família'], photo:'imagens/homem15.jpg', photos:['imagens/homem15.jpg','imagens/homem015.jpg','imagens/homem0015.jpg'], guaranteedMatch:false },
-  { id:'homem16', name:'Daniel Costa', age:26, sex:'Homem', city:'Campinas, SP', state:'São Paulo', uf:'SP', lat:-22.9099, lng:-47.0626, bio:'Desenvolvedor de software, gamer nas horas vagas e sempre estudando algo novo. Café coado é indispensável no meu dia.', interests:['Tecnologia','Estudos','Filmes'], photo:'imagens/homem16.jpg', photos:['imagens/homem16.jpg','imagens/homem016.jpg','imagens/homem0016.jpg'], guaranteedMatch:false },
-  { id:'homem17', name:'Fábio Azevedo', age:33, sex:'Homem', city:'Montes Claros, MG', state:'Minas Gerais', uf:'MG', lat:-16.7286, lng:-43.8578, bio:'Veterinário, apaixonado pelos animais desde criança 🐾. Minha fé é discreta, mas presente em tudo que faço.', interests:['Animais','Fé','Voluntariado'], photo:'imagens/homem17.jpg', photos:['imagens/homem17.jpg','imagens/homem017.jpg','imagens/homem0017.jpg'], guaranteedMatch:true },
-  { id:'homem18', name:'Renan Vieira', age:29, sex:'Homem', city:'Maceió, AL', state:'Alagoas', uf:'AL', lat:-9.6658, lng:-35.735, bio:'Fotógrafo freelancer, sempre em busca da luz perfeita. Adoro registrar viagens e pessoas de verdade.', interests:['Fotografia','Viagens','Trabalho'], photo:'imagens/homem18.jpg', photos:['imagens/homem18.jpg','imagens/homem018.jpg','imagens/homem0018.jpg'], guaranteedMatch:false },
-  { id:'homem19', name:'Matheus Correia', age:22, sex:'Homem', city:'João Pessoa, PB', state:'Paraíba', uf:'PB', lat:-7.1195, lng:-34.845, bio:'Ainda na faculdade de educação física, jogo vôlei há 10 anos e sonho em competir profissionalmente. Simples e família em primeiro lugar.', interests:['Esportes','Família','Estudos'], photo:'imagens/homem19.jpg', photos:['imagens/homem19.jpg','imagens/homem019.jpg','imagens/homem0019.jpg'], guaranteedMatch:false },
-  { id:'homem20', name:'Igor Batista', age:38, sex:'Homem', city:'Londrina, PR', state:'Paraná', uf:'PR', lat:-23.3103, lng:-51.1628, bio:'Empresário no ramo automotivo, já viajei bastante a trabalho e agora quero viajar por prazer. Gosto de boa conversa regada a café.', interests:['Trabalho','Viagens','Gastronomia'], photo:'imagens/homem20.jpg', photos:['imagens/homem20.jpg','imagens/homem020.jpg','imagens/homem0020.jpg'], guaranteedMatch:false }
+  { id:'mulher01', name:'Ana Beatriz Souza', age:27, sex:'Mulher', city:'Bocaiuva, MG', state:'Minas Gerais', uf:'MG', lat:-17.1103, lng:-43.8153, bio:'Professora do fundamental e apaixonada pelo coral da igreja aos domingos. Nas horas livres, adoro uma boa xícara de café e uma conversa profunda.', interests:['Igreja','Música','Livros','Família'], photo:'imagens/mulher01.png', photos:['imagens/mulher01.png','imagens/mulher001.png','imagens/mulher0001.png'], guaranteedMatch:true },
+  { id:'mulher02', name:'Mariana Costa', age:24, sex:'Mulher', city:'São Paulo, SP', state:'São Paulo', uf:'SP', lat:-23.5505, lng:-46.6333, bio:'Fisioterapeuta em início de carreira, sempre com uma mala pronta pra próxima viagem ✈️. Gosto de fotografar os lugares que conheço.', interests:['Viagens','Fotografia','Praia'], photo:'imagens/mulher02.png', photos:['imagens/mulher02.png','imagens/mulher002.png','imagens/mulher0002.png'], guaranteedMatch:false },
+  { id:'mulher03', name:'Camila Ferreira', age:29, sex:'Mulher', city:'Rio de Janeiro, RJ', state:'Rio de Janeiro', uf:'RJ', lat:-22.9068, lng:-43.1729, bio:'Psicóloga clínica, maratonista de séries nos fins de semana. Prefiro conversas sinceras a superficiais.', interests:['Séries','Estudos','Animais'], photo:'imagens/mulher03.png', photos:['imagens/mulher03.png','imagens/mulher003.png','imagens/mulher0003.png'], guaranteedMatch:false },
+  { id:'mulher04', name:'Juliana Martins', age:31, sex:'Mulher', city:'Curitiba, PR', state:'Paraná', uf:'PR', lat:-25.4284, lng:-49.2733, bio:'Advogada tributarista, viciada em livros de não-ficção e em planejar a próxima viagem internacional. Buscando algo sério e duradouro.', interests:['Livros','Viagens','Trabalho'], photo:'imagens/mulher04.png', photos:['imagens/mulher04.png','imagens/mulher004.png','imagens/mulher0004.png'], guaranteedMatch:false },
+  { id:'mulher05', name:'Beatriz Lima', age:25, sex:'Mulher', city:'Recife, PE', state:'Pernambuco', uf:'PE', lat:-8.0476, lng:-34.877, bio:'Designer gráfica, apaixonada por fotografia analógica 📷 e por domingos tranquilos em família.', interests:['Fotografia','Família','Tecnologia'], photo:'imagens/mulher05.png', photos:['imagens/mulher05.png','imagens/mulher005.png','imagens/mulher0005.png'], guaranteedMatch:true },
+  { id:'mulher06', name:'Larissa Cardoso', age:23, sex:'Mulher', city:'Fortaleza, CE', state:'Ceará', uf:'CE', lat:-3.7172, lng:-38.5433, bio:'Estudante de teologia, canto no ministério de louvor e amo um pôr do sol na praia depois do culto.', interests:['Fé','Igreja','Praia','Música'], photo:'imagens/mulher06.png', photos:['imagens/mulher06.png','imagens/mulher006.png','imagens/mulher0006.png'], guaranteedMatch:false },
+  { id:'mulher07', name:'Fernanda Rocha', age:33, sex:'Mulher', city:'Belo Horizonte, MG', state:'Minas Gerais', uf:'MG', lat:-19.9167, lng:-43.9345, bio:'Enfermeira de UTI, aprendi a valorizar cada dia. Nas folgas, estou sempre envolvida em algum projeto voluntário.', interests:['Voluntariado','Família','Fé'], photo:'imagens/mulher07.png', photos:['imagens/mulher07.png','imagens/mulher007.png','imagens/mulher0007.png'], guaranteedMatch:false },
+  { id:'mulher08', name:'Patrícia Alves', age:35, sex:'Mulher', city:'Porto Alegre, RS', state:'Rio Grande do Sul', uf:'RS', lat:-30.0346, lng:-51.2177, bio:'Arquiteta e apaixonada por dança de salão desde os 20 anos 💃. Busco alguém maduro, com propósito de vida e fé genuína.', interests:['Dança','Trabalho','Fé'], photo:'imagens/mulher08.png', photos:['imagens/mulher08.png','imagens/mulher008.png','imagens/mulher0008.png'], guaranteedMatch:true },
+  { id:'mulher09', name:'Bruna Teixeira', age:26, sex:'Mulher', city:'Salvador, BA', state:'Bahia', uf:'BA', lat:-12.9714, lng:-38.5014, bio:'Jornalista, curiosa por natureza, sempre com uma playlist nova pra compartilhar. Gosto de shows pequenos e conversa boa.', interests:['Música','Trabalho','Filmes'], photo:'imagens/mulher09.png', photos:['imagens/mulher09.png','imagens/mulher009.png','imagens/mulher0009.png'], guaranteedMatch:false },
+  { id:'mulher10', name:'Carolina Mendes', age:30, sex:'Mulher', city:'Brasília, DF', state:'Distrito Federal', uf:'DF', lat:-15.7939, lng:-47.8828, bio:'Servidora pública, corredora de plantão (já fiz três maratonas). Levo a fé a sério, mas sem exageros.', interests:['Esportes','Academia','Fé'], photo:'imagens/mulher10.png', photos:['imagens/mulher10.png','imagens/mulher010.png','imagens/mulher0010.png'], guaranteedMatch:false },
+  { id:'mulher11', name:'Débora Santos', age:28, sex:'Mulher', city:'Manaus, AM', state:'Amazonas', uf:'AM', lat:-3.119, lng:-60.0217, bio:'Bióloga apaixonada pela Amazônia onde nasci. Adoro trilhas, animais e um bom documentário de natureza.', interests:['Natureza','Animais','Viagens'], photo:'imagens/mulher11.png', photos:['imagens/mulher11.png','imagens/mulher011.png','imagens/mulher0011.png'], guaranteedMatch:false },
+  { id:'mulher12', name:'Priscila Gomes', age:22, sex:'Mulher', city:'Florianópolis, SC', state:'Santa Catarina', uf:'SC', lat:-27.5954, lng:-48.548, bio:'Ainda na faculdade, viciada em surfar antes das aulas 🏄‍♀️. Sou bem família, adoro estar com meus pais e irmãos.', interests:['Praia','Esportes','Família'], photo:'imagens/mulher12.png', photos:['imagens/mulher12.png','imagens/mulher012.png','imagens/mulher0012.png'], guaranteedMatch:false },
+  { id:'mulher13', name:'Vanessa Ribeiro', age:34, sex:'Mulher', city:'Vitória, ES', state:'Espírito Santo', uf:'ES', lat:-20.3155, lng:-40.3128, bio:'Contadora nas horas vagas, cozinheira nas horas boas. Adoro receber amigos em casa pra um jantar caseiro.', interests:['Culinária','Gastronomia','Família'], photo:'imagens/mulher13.png', photos:['imagens/mulher13.png','imagens/mulher013.png','imagens/mulher0013.png'], guaranteedMatch:false },
+  { id:'mulher14', name:'Aline Barbosa', age:27, sex:'Mulher', city:'Natal, RN', state:'Rio Grande do Norte', uf:'RN', lat:-5.7945, lng:-35.211, bio:'Dentista, jogo vôlei desde adolescente e ainda disputo campeonatos amadores. Fé é parte importante da minha rotina, sem ser o único assunto.', interests:['Esportes','Fé','Academia'], photo:'imagens/mulher14.png', photos:['imagens/mulher14.png','imagens/mulher014.png','imagens/mulher0014.png'], guaranteedMatch:true },
+  { id:'mulher15', name:'Renata Pereira', age:32, sex:'Mulher', city:'Goiânia, GO', state:'Goiás', uf:'GO', lat:-16.6864, lng:-49.2653, bio:'Empreendedora, toco meu próprio negócio de estética há 5 anos. Gosto de gente que sonha grande e trabalha duro.', interests:['Empreendedorismo','Trabalho','Viagens'], photo:'imagens/mulher15.png', photos:['imagens/mulher15.png','imagens/mulher015.png','imagens/mulher0015.png'], guaranteedMatch:false },
+  { id:'mulher16', name:'Isabela Nunes', age:24, sex:'Mulher', city:'Campinas, SP', state:'São Paulo', uf:'SP', lat:-22.9099, lng:-47.0626, bio:'Engenheira de software, apaixonada por tecnologia e por resolver problemas complicados. Prefiro um bom filme a uma balada.', interests:['Tecnologia','Filmes','Estudos'], photo:'imagens/mulher16.png', photos:['imagens/mulher16.png','imagens/mulher016.png','imagens/mulher0016.png'], guaranteedMatch:false },
+  { id:'mulher17', name:'Letícia Farias', age:29, sex:'Mulher', city:'Montes Claros, MG', state:'Minas Gerais', uf:'MG', lat:-16.7286, lng:-43.8578, bio:'Farmacêutica, viciada em trilhas nos fins de semana ⛰️. Cresci na igreja e minha fé segue viva, mas gosto de gente que também vive a vida.', interests:['Natureza','Fé','Esportes'], photo:'imagens/mulher17.png', photos:['imagens/mulher17.png','imagens/mulher017.png','imagens/mulher0017.png'], guaranteedMatch:false },
+  { id:'mulher18', name:'Amanda Correia', age:31, sex:'Mulher', city:'Maceió, AL', state:'Alagoas', uf:'AL', lat:-9.6658, lng:-35.735, bio:'Chef de cozinha, apaixonada por gastronomia regional brasileira. Meu domingo ideal é cozinhar pra família inteira.', interests:['Gastronomia','Culinária','Família'], photo:'imagens/mulher18.png', photos:['imagens/mulher18.png','imagens/mulher018.png','imagens/mulher0018.png'], guaranteedMatch:false },
+  { id:'mulher19', name:'Gabriela Duarte', age:26, sex:'Mulher', city:'João Pessoa, PB', state:'Paraíba', uf:'PB', lat:-7.1195, lng:-34.845, bio:'Educadora física, jogo futebol desde criança (sim, roubada de três irmãos 😄). Adoro o ar livre.', interests:['Esportes','Natureza','Família'], photo:'imagens/mulher19.png', photos:['imagens/mulher19.png','imagens/mulher019.png','imagens/mulher0019.png'], guaranteedMatch:false },
+  { id:'mulher20', name:'Tatiane Moreira', age:36, sex:'Mulher', city:'Londrina, PR', state:'Paraná', uf:'PR', lat:-23.3103, lng:-51.1628, bio:'Assistente social, dedico boa parte do tempo a projetos comunitários. Acredito que fé sem obra não é fé de verdade.', interests:['Voluntariado','Fé','Família'], photo:'imagens/mulher20.png', photos:['imagens/mulher20.png','imagens/mulher020.png','imagens/mulher0020.png'], guaranteedMatch:false },
+  { id:'homem01', name:'Pedro Henrique Alves', age:30, sex:'Homem', city:'Bocaiuva, MG', state:'Minas Gerais', uf:'MG', lat:-17.1103, lng:-43.8153, bio:'Engenheiro civil, lidero o grupo de jovens da igreja há 3 anos. Gosto de violão, trilhas e um domingo em família.', interests:['Igreja','Música','Natureza','Família'], photo:'imagens/homem01.png', photos:['imagens/homem01.png','imagens/homem001.png','imagens/homem0001.png'], guaranteedMatch:false },
+  { id:'homem02', name:'Lucas Almeida', age:33, sex:'Homem', city:'São Paulo, SP', state:'São Paulo', uf:'SP', lat:-23.5505, lng:-46.6333, bio:'Empreendedor no ramo de logística, gosto de acordar cedo pra treinar antes do trabalho 💪. Busco alguém com os pés no chão.', interests:['Trabalho','Academia','Empreendedorismo'], photo:'imagens/homem02.png', photos:['imagens/homem02.png','imagens/homem002.png','imagens/homem0002.png'], guaranteedMatch:true },
+  { id:'homem03', name:'Rafael Souza', age:26, sex:'Homem', city:'Rio de Janeiro, RJ', state:'Rio de Janeiro', uf:'RJ', lat:-22.9068, lng:-43.1729, bio:'Músico, toco na banda de louvor e também em bares aos sábados. Café, violão e boa conversa resolvem qualquer dia ruim.', interests:['Música','Igreja','Gastronomia'], photo:'imagens/homem03.png', photos:['imagens/homem03.png','imagens/homem003.png','imagens/homem0003.png'], guaranteedMatch:false },
+  { id:'homem04', name:'Gabriel Oliveira', age:28, sex:'Homem', city:'Curitiba, PR', state:'Paraná', uf:'PR', lat:-25.4284, lng:-49.2733, bio:'Professor de educação física, apaixonado por esportes coletivos e por ensinar crianças. Aos domingos, igreja com a família.', interests:['Esportes','Família','Igreja'], photo:'imagens/homem04.png', photos:['imagens/homem04.png','imagens/homem004.png','imagens/homem0004.png'], guaranteedMatch:false },
+  { id:'homem05', name:'Thiago Rocha', age:34, sex:'Homem', city:'Recife, PE', state:'Pernambuco', uf:'PE', lat:-8.0476, lng:-34.877, bio:'Médico plantonista, aprendi a não adiar o que importa. Já fiz duas viagens de missão e pretendo repetir.', interests:['Viagens','Voluntariado','Fé'], photo:'imagens/homem05.png', photos:['imagens/homem05.png','imagens/homem005.png','imagens/homem0005.png'], guaranteedMatch:false },
+  { id:'homem06', name:'Diego Fernandes', age:29, sex:'Homem', city:'Fortaleza, CE', state:'Ceará', uf:'CE', lat:-3.7172, lng:-38.5433, bio:'Analista de sistemas, apaixonado por tecnologia e por um bom RPG de tabuleiro nos fins de semana 🎲.', interests:['Tecnologia','Séries','Estudos'], photo:'imagens/homem06.png', photos:['imagens/homem06.png','imagens/homem006.png','imagens/homem0006.png'], guaranteedMatch:true },
+  { id:'homem07', name:'Marcelo Andrade', age:37, sex:'Homem', city:'Belo Horizonte, MG', state:'Minas Gerais', uf:'MG', lat:-19.9167, lng:-43.9345, bio:'Engenheiro civil, pai de pet (um vira-lata chamado Theo) e corredor de longas distâncias. Fé nas entrelinhas, não só no discurso.', interests:['Animais','Esportes','Fé'], photo:'imagens/homem07.png', photos:['imagens/homem07.png','imagens/homem007.png','imagens/homem0007.png'], guaranteedMatch:false },
+  { id:'homem08', name:'Felipe Cardoso', age:25, sex:'Homem', city:'Porto Alegre, RS', state:'Rio Grande do Sul', uf:'RS', lat:-30.0346, lng:-51.2177, bio:'Chef em formação, meu sonho é abrir meu próprio restaurante um dia. Cozinho pra qualquer pessoa que aparecer em casa.', interests:['Gastronomia','Empreendedorismo','Culinária'], photo:'imagens/homem08.png', photos:['imagens/homem08.png','imagens/homem008.png','imagens/homem0008.png'], guaranteedMatch:false },
+  { id:'homem09', name:'Bruno Castro', age:31, sex:'Homem', city:'Salvador, BA', state:'Bahia', uf:'BA', lat:-12.9714, lng:-38.5014, bio:'Advogado, gosto de um bom livro de história e de assistir futebol aos domingos à tarde.', interests:['Livros','Esportes','Trabalho'], photo:'imagens/homem09.png', photos:['imagens/homem09.png','imagens/homem009.png','imagens/homem0009.png'], guaranteedMatch:false },
+  { id:'homem10', name:'Rodrigo Nascimento', age:27, sex:'Homem', city:'Brasília, DF', state:'Distrito Federal', uf:'DF', lat:-15.7939, lng:-47.8828, bio:'Servidor público, estudei muito pra chegar aqui e não me arrependo de nenhuma madrugada acordado. Corro no parque e leio biografias.', interests:['Estudos','Esportes','Livros'], photo:'imagens/homem10.png', photos:['imagens/homem10.png','imagens/homem010.png','imagens/homem0010.png'], guaranteedMatch:false },
+  { id:'homem11', name:'André Lima', age:32, sex:'Homem', city:'Manaus, AM', state:'Amazonas', uf:'AM', lat:-3.119, lng:-60.0217, bio:'Engenheiro florestal, cresci no meio da floresta e não canso de mostrar isso pra quem visita. Trilhas e bichos são minha paixão.', interests:['Natureza','Animais','Viagens'], photo:'imagens/homem11.png', photos:['imagens/homem11.png','imagens/homem011.png','imagens/homem0011.png'], guaranteedMatch:true },
+  { id:'homem12', name:'Vinícius Barros', age:24, sex:'Homem', city:'Florianópolis, SC', state:'Santa Catarina', uf:'SC', lat:-27.5954, lng:-48.548, bio:'Instrutor de surf, moro literalmente de frente pro mar 🌊. Simples, direto e gosto de gente autêntica.', interests:['Praia','Esportes','Natureza'], photo:'imagens/homem12.png', photos:['imagens/homem12.png','imagens/homem012.png','imagens/homem0012.png'], guaranteedMatch:false },
+  { id:'homem13', name:'Leonardo Pires', age:35, sex:'Homem', city:'Vitória, ES', state:'Espírito Santo', uf:'ES', lat:-20.3155, lng:-40.3128, bio:'Arquiteto, apaixonado por dança de salão (aprendi pra impressionar minha mãe, hoje é hobby sério). Busco algo de verdade.', interests:['Dança','Trabalho','Fé'], photo:'imagens/homem13.png', photos:['imagens/homem13.png','imagens/homem013.png','imagens/homem0013.png'], guaranteedMatch:false },
+  { id:'homem14', name:'Eduardo Machado', age:28, sex:'Homem', city:'Natal, RN', state:'Rio Grande do Norte', uf:'RN', lat:-5.7945, lng:-35.211, bio:'Dentista, jogo vôlei de praia sempre que posso e sou fã de churrasco de domingo com a família.', interests:['Esportes','Família','Gastronomia'], photo:'imagens/homem14.png', photos:['imagens/homem14.png','imagens/homem014.png','imagens/homem0014.png'], guaranteedMatch:false },
+  { id:'homem15', name:'Gustavo Ramos', age:30, sex:'Homem', city:'Goiânia, GO', state:'Goiás', uf:'GO', lat:-16.6864, lng:-49.2653, bio:'Agrônomo, cresci na roça e hoje cuido de uma pequena propriedade da família. Gosto de música sertaneja raiz e de uma vida simples.', interests:['Natureza','Música','Família'], photo:'imagens/homem15.png', photos:['imagens/homem15.png','imagens/homem015.png','imagens/homem0015.png'], guaranteedMatch:false },
+  { id:'homem16', name:'Daniel Costa', age:26, sex:'Homem', city:'Campinas, SP', state:'São Paulo', uf:'SP', lat:-22.9099, lng:-47.0626, bio:'Desenvolvedor de software, gamer nas horas vagas e sempre estudando algo novo. Café coado é indispensável no meu dia.', interests:['Tecnologia','Estudos','Filmes'], photo:'imagens/homem16.png', photos:['imagens/homem16.png','imagens/homem016.png','imagens/homem0016.png'], guaranteedMatch:false },
+  { id:'homem17', name:'Fábio Azevedo', age:33, sex:'Homem', city:'Montes Claros, MG', state:'Minas Gerais', uf:'MG', lat:-16.7286, lng:-43.8578, bio:'Veterinário, apaixonado pelos animais desde criança 🐾. Minha fé é discreta, mas presente em tudo que faço.', interests:['Animais','Fé','Voluntariado'], photo:'imagens/homem17.png', photos:['imagens/homem17.png','imagens/homem017.png','imagens/homem0017.png'], guaranteedMatch:true },
+  { id:'homem18', name:'Renan Vieira', age:29, sex:'Homem', city:'Maceió, AL', state:'Alagoas', uf:'AL', lat:-9.6658, lng:-35.735, bio:'Fotógrafo freelancer, sempre em busca da luz perfeita. Adoro registrar viagens e pessoas de verdade.', interests:['Fotografia','Viagens','Trabalho'], photo:'imagens/homem18.png', photos:['imagens/homem18.png','imagens/homem018.png','imagens/homem0018.png'], guaranteedMatch:false },
+  { id:'homem19', name:'Matheus Correia', age:22, sex:'Homem', city:'João Pessoa, PB', state:'Paraíba', uf:'PB', lat:-7.1195, lng:-34.845, bio:'Ainda na faculdade de educação física, jogo vôlei há 10 anos e sonho em competir profissionalmente. Simples e família em primeiro lugar.', interests:['Esportes','Família','Estudos'], photo:'imagens/homem19.png', photos:['imagens/homem19.png','imagens/homem019.png','imagens/homem0019.png'], guaranteedMatch:false },
+  { id:'homem20', name:'Igor Batista', age:38, sex:'Homem', city:'Londrina, PR', state:'Paraná', uf:'PR', lat:-23.3103, lng:-51.1628, bio:'Empresário no ramo automotivo, já viajei bastante a trabalho e agora quero viajar por prazer. Gosto de boa conversa regada a café.', interests:['Trabalho','Viagens','Gastronomia'], photo:'imagens/homem20.png', photos:['imagens/homem20.png','imagens/homem020.png','imagens/homem0020.png'], guaranteedMatch:false }
 ];
 
 const Seed = {
@@ -1369,7 +1383,7 @@ const Seed = {
       'demo_free': {
         id:'demo_free', role:'user', email:'teste@cupido.com', password:'123456', name:'Você (Gratuito)',
         birthdate:'1997-05-14', age:28, sex:'Homem', interestedIn:'Mulheres',
-        city:'Belo Horizonte, MG', state:'Minas Gerais', country:'Brasil', lat:-19.9167, lng:-43.9345, locationStatus:'granted', radiusKm:2500, // raio amplo de propósito: permite navegar pela base nacional de perfis iniciais durante o teste/demo
+        city:'Belo Horizonte, MG', state:'Minas Gerais', country:'Brasil', lat:-19.9167, lng:-43.9345, locationStatus:'granted', radiusKm:50,
         bio:'Buscando um relacionamento sério, com fé e propósito.', interests:['Igreja','Família','Viagens'],
         photos:[pf(70)], isPremium:false, likesLeft:7,
         likedUserIds:[], passedUserIds:[], matchIds:[], notificationIds:[], createdAt: now, isSeed:false
@@ -1377,7 +1391,7 @@ const Seed = {
       'demo_premium': {
         id:'demo_premium', role:'user', email:'premium@cupido.com', password:'123456', name:'Você (Premium)',
         birthdate:'1993-02-02', age:32, sex:'Mulher', interestedIn:'Homens',
-        city:'São Paulo, SP', state:'São Paulo', country:'Brasil', lat:-23.5505, lng:-46.6333, locationStatus:'granted', radiusKm:2500, // idem — raio amplo apenas para fins de demonstração
+        city:'São Paulo, SP', state:'São Paulo', country:'Brasil', lat:-23.5505, lng:-46.6333, locationStatus:'granted', radiusKm:50,
         bio:'Cristã, alegre, buscando um relacionamento com propósito eterno.', interests:['Igreja','Música','Praia','Leitura'],
         photos:[pfw(76)], isPremium:true, likesLeft:999,
         likedUserIds:['homem02','homem04'], passedUserIds:[], matchIds:[], notificationIds:[], createdAt: now, isSeed:false
@@ -1429,7 +1443,6 @@ const State = {
   currentCardProfile: null,
   currentPhotoIndex: 0,
   activeChatConversationId: null,
-  selectedPlan: '3m',
   dragStartX: null, dragCurrentX: 0, dragging:false
 };
 
@@ -1437,6 +1450,10 @@ const State = {
    4. UTILITÁRIOS
 --------------------------------------------------------------------------- */
 function uid(prefix){ return prefix+'_'+Date.now()+'_'+Math.floor(Math.random()*100000); }
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 // Converte fotos em base64 (preview local, gerado no cadastro/edição) em
 // arquivos reais enviados ao Supabase Storage, retornando as URLs públicas.
@@ -1481,7 +1498,9 @@ const ICON_PATHS = {
   eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/>',
   compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
   sparkline: '<path d="M12 3v3.2M12 17.8V21M4.9 12H3M21 12h-1.9M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4"/><circle cx="12" cy="12" r="2.6"/>',
-  wave: '<path d="M4 12c1.5 0 1.5-2 3-2s1.5 2 3 2 1.5-2 3-2 1.5 2 3 2 1.5-2 3-2"/>'
+  wave: '<path d="M4 12c1.5 0 1.5-2 3-2s1.5 2 3 2 1.5-2 3-2 1.5 2 3 2 1.5-2 3-2"/>',
+  chevronLeft: '<path d="M15 6l-6 6 6 6"/>',
+  chevronRight: '<path d="M9 6l6 6-6 6"/>'
 };
 function icon(name, size, extraClass){
   const path = ICON_PATHS[name] || '';
@@ -1516,6 +1535,37 @@ function hashStr(str){
   let h=0;
   for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
   return h;
+}
+
+// ---------------------------------------------------------------------------
+// STATUS DE ATIVIDADE (online / "online há X min" / offline)
+// - Usuários reais: `lastActiveAt` é atualizado de verdade por um heartbeat
+//   enquanto a pessoa está com o app aberto (ver ActivityHeartbeat) e
+//   espelhado no Supabase (`profiles.last_seen`).
+// - Perfis iniciais (seed): não têm atividade real, então usamos um status
+//   sintético, mas ESTÁVEL por perfil (baseado no id), só para a demonstração
+//   parecer viva — nunca inventamos isso para uma pessoa real.
+// Regra do produto: nunca exibir mais que "há 15 min"; depois disso, Offline.
+// ---------------------------------------------------------------------------
+function getLastActiveAt(profile){
+  if(!profile) return null;
+  if(profile.isSeed){
+    const h = hashStr(profile.id + '::activity::' + Math.floor(Date.now()/(30*60000))); // muda a cada 30min
+    return Date.now() - (h % (60*60000)); // em algum ponto da última hora
+  }
+  return profile.lastActiveAt || null;
+}
+function formatLastSeen(profile){
+  const ts = getLastActiveAt(profile);
+  if(!ts) return 'Offline';
+  const diffMin = Math.floor((Date.now()-ts)/60000);
+  if(diffMin < 1) return 'Online';
+  if(diffMin <= 15) return `Online há ${diffMin} min`;
+  return 'Offline';
+}
+function isOnlineNow(profile){ return formatLastSeen(profile) !== 'Offline'; }
+function statusDotHTML(profile){
+  return `<span class="status-dot ${isOnlineNow(profile)?'online':'offline'}"></span>`;
 }
 
 const Location = {
@@ -1790,6 +1840,36 @@ const MatchScheduler = {
   }
 };
 
+// ---------------------------------------------------------------------------
+// ActivityHeartbeat — mantém `lastActiveAt` do usuário logado atualizado de
+// verdade enquanto o app estiver aberto (não é simulado). Roda a cada 30s
+// e também ao entrar no app; espelha no Supabase via updateLastSeen()
+// (best-effort — requer a coluna `last_seen` em `profiles`, ver SQL).
+// ---------------------------------------------------------------------------
+const ActivityHeartbeat = {
+  _interval: null,
+  start(){
+    if(this._interval) return;
+    this.beat();
+    this._interval = setInterval(()=>this.beat(), 30000);
+    document.addEventListener('visibilitychange', this._onVisible);
+  },
+  stop(){
+    if(this._interval){ clearInterval(this._interval); this._interval = null; }
+    document.removeEventListener('visibilitychange', this._onVisible);
+  },
+  _onVisible(){
+    if(document.visibilityState === 'visible') ActivityHeartbeat.beat();
+  },
+  beat(){
+    const me = DataService.auth.getCurrentUser();
+    if(!me || me.role==='admin') return;
+    me.lastActiveAt = Date.now();
+    persist();
+    SupabaseBackend.updateLastSeen(me.id); // best-effort
+  }
+};
+
 function getPhoto(profile){ return (profile && profile.photos && profile.photos[0]) || null; }
 // Nunca inventa uma foto: se o perfil não tem foto real, mostra uma
 // apresentação elegante sem foto (ícone), em vez de um avatar fictício de
@@ -1824,7 +1904,16 @@ const Router = {
 
 const Overlays = {
   open(id){ document.getElementById(id).classList.add('open'); },
-  close(id){ document.getElementById(id).classList.remove('open'); }
+  close(id){ document.getElementById(id).classList.remove('open'); },
+  closeAll(){ document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open')); },
+  // Clicar no fundo (fora do cartão/sheet) ou apertar ESC fecha qualquer
+  // overlay aberto — nenhuma tela em modal pode deixar a pessoa "presa".
+  init(){
+    document.querySelectorAll('.overlay').forEach(overlay=>{
+      overlay.addEventListener('click', e=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+    });
+    document.addEventListener('keydown', e=>{ if(e.key === 'Escape') this.closeAll(); });
+  }
 };
 
 /* ---------------------------------------------------------------------------
@@ -1856,6 +1945,7 @@ const Auth = {
   logout(){
     DataService.auth.signOut();
     MatchScheduler.stopPolling();
+    ActivityHeartbeat.stop();
     Router.show('landing');
     toast('Você saiu da sua conta.');
   }
@@ -1887,20 +1977,34 @@ const InterestPicker = {
   renderChips(containerId){
     const st = this.state[containerId];
     if(!st) return;
-    const q = st.query.trim().toLowerCase();
+    const query = st.query.trim();
+    const q = query.toLowerCase();
     const filtered = q ? INTERESTS_LIST.filter(t => t.toLowerCase().includes(q)) : INTERESTS_LIST;
+    const exactMatch = q && INTERESTS_LIST.some(t => t.toLowerCase() === q) || (q && st.selected.has(query));
     const selectedEl = document.getElementById(containerId+'-selected');
     const gridEl = document.getElementById(containerId+'-grid');
     if(!selectedEl || !gridEl) return;
     selectedEl.innerHTML = st.selected.size
-      ? [...st.selected].map(t => `<button type="button" class="chip active" onclick="InterestPicker.toggle('${containerId}','${t}')">${t} ✕</button>`).join('')
+      ? [...st.selected].map(t => `<button type="button" class="chip active" onclick="InterestPicker.toggle('${containerId}',${escapeHtml(JSON.stringify(t))})">${escapeHtml(t)} ✕</button>`).join('')
       : `<span class="faint small">Nenhum interesse selecionado ainda.</span>`;
-    gridEl.innerHTML = filtered.length
-      ? filtered.map(t => `<button type="button" class="chip ${st.selected.has(t)?'active':''}" onclick="InterestPicker.toggle('${containerId}','${t}')">${t}</button>`).join('')
-      : `<span class="faint small">Nenhum interesse encontrado para essa busca.</span>`;
+    let gridHTML = filtered.map(t => `<button type="button" class="chip ${st.selected.has(t)?'active':''}" onclick="InterestPicker.toggle('${containerId}',${escapeHtml(JSON.stringify(t))})">${t}</button>`).join('');
+    if(query && !exactMatch){
+      gridHTML += `<button type="button" class="chip chip-add-custom" onclick="InterestPicker.addCustom('${containerId}')">+ Adicionar "${escapeHtml(query)}"</button>`;
+    }
+    gridEl.innerHTML = gridHTML || `<span class="faint small">Nenhum interesse encontrado para essa busca.</span>`;
   },
   onSearch(containerId, value){
     this.state[containerId].query = value;
+    this.renderChips(containerId);
+  },
+  addCustom(containerId){
+    const st = this.state[containerId];
+    const value = st.query.trim();
+    if(!value) return;
+    st.selected.add(value);
+    st.query = '';
+    const input = document.getElementById(containerId+'-search');
+    if(input) input.value = '';
     this.renderChips(containerId);
   },
   toggle(containerId, value){
@@ -1926,10 +2030,6 @@ const Signup = {
     this.updateProgress();
     this.renderPhotoGrid();
     InterestPicker.init('su-interests-picker', []);
-    document.getElementById('su-city-input').value='';
-    document.getElementById('su-city-selected-wrap').style.display='none';
-    document.getElementById('su-city-not-found').classList.add('hidden');
-    document.getElementById('su-manual-city-wrap').classList.add('hidden');
     document.getElementById('su-radius').value=50;
     document.getElementById('su-radius-value').textContent='Até 50 km';
     document.querySelectorAll('#su-sex-group .pill-option, #su-interest-group .pill-option').forEach(b=>b.classList.remove('active','rose'));
@@ -1949,10 +2049,7 @@ const Signup = {
     btn.classList.add('active','rose');
   },
 
-  /* ---------- LOCALIZAÇÃO (etapa 3) — GPS é o método principal ---------- */
-  toggleManualCity(){
-    document.getElementById('su-manual-city-wrap').classList.toggle('hidden');
-  },
+  /* ---------- LOCALIZAÇÃO (etapa 3) — GPS é o único método ---------- */
   requestLocation(){
     const statusBox = document.getElementById('su-location-status');
     statusBox.innerHTML = `<p class="small muted text-center">Obtendo sua localização...</p>`;
@@ -1998,69 +2095,6 @@ const Signup = {
     }
   },
 
-  // ID de requisição incremental para ignorar respostas de buscas antigas
-  // (importante quando CityService.search() virar uma chamada de rede real).
-  _cityRequestId:0,
-
-  async onCityInput(e){
-    const q = e.target.value.trim();
-    const list = document.getElementById('su-city-list');
-    const notFound = document.getElementById('su-city-not-found');
-    // qualquer edição no campo invalida uma cidade previamente selecionada/confirmada
-    State.signupData.city = null;
-    State.signupData.citySource = null;
-    notFound.classList.add('hidden');
-    document.getElementById('su-city-selected-wrap').style.display='none';
-
-    if(q.length < 2){ list.classList.add('hidden'); list.innerHTML=''; return; }
-
-    const requestId = ++this._cityRequestId;
-    const results = await CityService.search(q);
-    if(requestId !== this._cityRequestId) return; // uma busca mais recente já está em andamento
-
-    if(results.length===0){
-      list.classList.add('hidden'); list.innerHTML='';
-      notFound.classList.remove('hidden');
-      return;
-    }
-    list.innerHTML = results.map(c => {
-      const label = CityService.label(c);
-      return `<div class="autocomplete-item" onclick='Signup.pickCity(${JSON.stringify(JSON.stringify(c))})'>${c.name}<span class="faint">, ${c.uf}</span></div>`;
-    }).join('');
-    list.classList.remove('hidden');
-  },
-  pickCity(cityJsonStr){
-    const c = JSON.parse(cityJsonStr);
-    const label = CityService.label(c);
-    State.signupData.city = label;
-    State.signupData.state = c.state;
-    State.signupData.lat = c.lat;
-    State.signupData.lng = c.lng;
-    State.signupData.citySource = 'list';
-    State.signupData.locationStatus = 'manual';
-    document.getElementById('su-city-input').value = label;
-    document.getElementById('su-city-list').classList.add('hidden');
-    document.getElementById('su-city-not-found').classList.add('hidden');
-    document.getElementById('su-city-selected-wrap').style.display='block';
-    document.getElementById('su-city-chip').innerHTML = icon('mapPin',14) + ' ' + label;
-  },
-  // Usuário digitou uma cidade que não está na amostra local do protótipo —
-  // não bloqueamos o cadastro; guardamos o texto como está e marcamos para
-  // que a localização real seja resolvida depois (geocoding/API completa).
-  useFreeformCity(){
-    const typed = document.getElementById('su-city-input').value.trim();
-    if(!typed) return;
-    State.signupData.city = typed;
-    State.signupData.state = typed.includes(',') ? typed.split(',')[1].trim() : '';
-    State.signupData.lat = null;
-    State.signupData.lng = null;
-    State.signupData.citySource = 'freeform';
-    State.signupData.locationStatus = 'manual';
-    document.getElementById('su-city-not-found').classList.add('hidden');
-    document.getElementById('su-city-selected-wrap').style.display='block';
-    document.getElementById('su-city-chip').innerHTML = icon('mapPin',14) + ' ' + typed + ' (verificaremos sua região)';
-    toast('Cidade salva. Vamos confirmar sua região em breve.');
-  },
   onRadiusInput(e){
     document.getElementById('su-radius-value').textContent = 'Até ' + e.target.value + ' km';
   },
@@ -2129,11 +2163,8 @@ const Signup = {
       return ok;
     }
     if(step===3){
-      // Localização (GPS ou cidade manual) NUNCA bloqueia o cadastro.
-      // Se o campo manual tem texto mas não foi confirmado, usa como freeform.
-      const manualInput = document.getElementById('su-city-input');
-      const typed = manualInput ? manualInput.value.trim() : '';
-      if(!State.signupData.city && typed){ this.useFreeformCity(); }
+      // Localização é obtida por GPS e nunca bloqueia o cadastro — se o
+      // usuário recusou ou pulou, ele segue em frente sem cidade/distância.
       if(!State.signupData.locationStatus) State.signupData.locationStatus = 'skipped';
       State.signupData.radiusKm = parseInt(document.getElementById('su-radius').value,10);
       State.signupData.country='Brasil';
@@ -2228,27 +2259,36 @@ const App = {
   runSearchSequence(user){
     Router.show('searching');
     const statusEl = document.getElementById('searching-status');
+    const fillEl = document.getElementById('searching-progress-fill');
     const doneEl = document.getElementById('searching-done');
     doneEl.style.display='none';
+    statusEl.style.display='block';
+    fillEl.style.width='0%';
     const steps = [
-      'Estamos procurando pessoas próximas a você...',
-      'Analisando sua região...',
-      'Encontrando pessoas compatíveis...',
-      'Preparando seus primeiros perfis...'
+      { text:'Analisando suas preferências...', pct:20 },
+      { text:'Buscando pessoas próximas...', pct:45 },
+      { text:'Aplicando seus interesses...', pct:70 },
+      { text:'Encontrando combinações compatíveis...', pct:92 },
+      { text:'Tudo pronto...', pct:100 }
     ];
     let i=0;
-    statusEl.textContent = steps[0];
+    statusEl.textContent = steps[0].text;
+    setTimeout(()=>{ fillEl.style.width = steps[0].pct+'%'; }, 50);
     const interval = setInterval(()=>{
       i++;
       if(i<steps.length){
         statusEl.style.opacity=0;
-        setTimeout(()=>{ statusEl.textContent = steps[i]; statusEl.style.opacity=1; },250);
+        setTimeout(()=>{
+          statusEl.textContent = steps[i].text;
+          statusEl.style.opacity=1;
+          fillEl.style.width = steps[i].pct+'%';
+        },220);
       } else {
         clearInterval(interval);
         statusEl.style.display='none';
         doneEl.style.display='flex';
       }
-    }, 1100);
+    }, 850);
   },
   enterAfterSearch(){ this.enterApp(); },
 
@@ -2259,6 +2299,7 @@ const App = {
     Conversations.updateBadge();
     LikesYou.updateBadge();
     MatchScheduler.startPolling();
+    ActivityHeartbeat.start();
   }
 };
 
@@ -2321,7 +2362,10 @@ const Discover = {
       ? `<div class="photo-progress" id="photo-progress">${dots}</div>
         <img id="card-photo-img" src="${photos[0]}" alt="${p.name}">
         <div class="photo-tap-left" onclick="Discover.prevPhoto()"></div>
-        <div class="photo-tap-right" onclick="Discover.nextPhoto()"></div>`
+        <div class="photo-tap-right" onclick="Discover.nextPhoto()"></div>
+        ${photos.length>1 ? `
+        <button type="button" class="photo-nav-arrow photo-nav-prev" aria-label="Foto anterior" onclick="event.stopPropagation(); Discover.prevPhoto();" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();">${icon('chevronLeft',20)}</button>
+        <button type="button" class="photo-nav-arrow photo-nav-next" aria-label="Próxima foto" onclick="event.stopPropagation(); Discover.nextPhoto();" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();">${icon('chevronRight',20)}</button>` : ''}`
       : `<div class="avatar-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg-alt);color:var(--ink-faint);">${icon('user',64)}</div>`;
     return `
     <div class="profile-card" id="active-profile-card">
@@ -2333,6 +2377,7 @@ const Discover = {
         <div class="card-info">
           <h3>${p.name}<span>${p.age}</span></h3>
           ${locLine}
+          <div class="status-line">${statusDotHTML(p)}${formatLastSeen(p)}</div>
         </div>
       </div>
       <div class="card-detail-panel">
@@ -2515,21 +2560,33 @@ const LikesYou = {
 };
 
 const ProfileDetail = {
-  openLikedProfile(id){
+  // opts.showLikeBack: mostra o botão "Curtir de volta" (usado a partir de
+  // "Quem curtiu você"). Sem essa opção, o popup é só de visualização —
+  // usado, por exemplo, ao clicar no nome de alguém dentro do chat.
+  open(id, opts){
+    opts = opts || {};
     const me = DataService.auth.getCurrentUser();
     const raw = DataService.profiles.getById(id);
+    if(!raw) return;
     const p = raw.isSeed ? Location.contextualize(me, raw) : Object.assign({}, raw, { displayCity: Location.userHasLocation(me) ? raw.city : null });
-    const locLine = p.displayCity ? `<p class="muted small" style="margin:4px 0 10px;display:flex;align-items:center;gap:5px;">${icon('mapPin',13)} ${p.displayCity}</p>` : '';
+    const locLine = p.displayCity ? `<p class="muted small" style="margin:4px 0;display:flex;align-items:center;gap:5px;">${icon('mapPin',13)} ${p.displayCity}${p.displayDistanceKm!=null?' · '+p.displayDistanceKm+' km':''}</p>` : '';
+    const statusLine = `<p class="status-line" style="margin:0 0 10px;">${statusDotHTML(p)}${formatLastSeen(p)}</p>`;
+    const likeBackBtn = opts.showLikeBack
+      ? `<button class="btn btn-primary btn-block" onclick="Overlays.close('overlay-profile-detail');(async()=>{const r=await DataService.likes.like('${me.id}','${id}'); if(r.blocked){Premium.showBlocker('likes');} else if(r.matched){MatchCelebration.show(DataService.auth.getCurrentUser(), DataService.profiles.getById('${id}'));} else {toast('Curtida enviada.');} Discover.updateLikesCounter();})()">Curtir de volta</button>`
+      : '';
     document.getElementById('profile-detail-content').innerHTML = `
       <div class="profile-header-photo">${avatarHTML(p,'width:100%;height:100%;',56)}</div>
       <h2>${p.name}, ${p.age}</h2>
       ${locLine}
+      ${statusLine}
       <p style="margin-bottom:12px;">${p.bio||''}</p>
       <div class="chip-grid" style="margin-bottom:16px;">${(p.interests||[]).map(t=>`<div class="chip active">${t}</div>`).join('')}</div>
-      <button class="btn btn-primary btn-block" onclick="Overlays.close('overlay-profile-detail');(async()=>{const r=await DataService.likes.like('${me.id}','${id}'); if(r.blocked){Premium.showBlocker('likes');} else if(r.matched){MatchCelebration.show(DataService.auth.getCurrentUser(), DataService.profiles.getById('${id}'));} else {toast('Curtida enviada.');} Discover.updateLikesCounter();})()">Curtir de volta</button>
+      ${likeBackBtn}
     `;
     Overlays.open('overlay-profile-detail');
-  }
+  },
+  // mantido por compatibilidade com chamadas existentes
+  openLikedProfile(id){ this.open(id, { showLikeBack:true }); }
 };
 
 /* ---------- CONVERSATIONS / CHAT ---------- */
@@ -2557,6 +2614,7 @@ const Conversations = {
         <div class="conv-meta">
           <div class="cname">${other.name}</div>
           <div class="clast">${last ? last.text : 'Vocês deram match. Diga olá!'}</div>
+          <div class="status-line">${statusDotHTML(other)}${formatLastSeen(other)}</div>
         </div>
         <div class="ctime">${last ? new Date(last.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
       </div>`;
@@ -2570,8 +2628,10 @@ const Chat = {
     const match = DB.matches[matchId];
     const other = Matches.otherUser(match, me.id);
     State.activeChatConversationId = match.conversationId;
+    State.activeChatOtherId = other.id;
     document.getElementById('chat-header-photo').innerHTML = avatarHTML(other,'width:38px;height:38px;border-radius:50%;object-fit:cover;',16);
     document.getElementById('chat-header-name').textContent = other.name;
+    document.getElementById('chat-header-status').innerHTML = statusDotHTML(other) + formatLastSeen(other);
     this.renderMessages();
 
     const inputArea = document.getElementById('chat-input-area');
@@ -2588,6 +2648,13 @@ const Chat = {
       </div>`;
     }
     document.getElementById('view-chat').classList.remove('hidden');
+  },
+  // Abre o perfil completo da pessoa a partir do nome no cabeçalho do chat.
+  // O chat continua aberto por baixo — fechar o popup de perfil volta
+  // exatamente para a conversa, sem perder o lugar.
+  viewProfile(){
+    if(!State.activeChatOtherId) return;
+    ProfileDetail.open(State.activeChatOtherId, { showLikeBack:false });
   },
   close(){ document.getElementById('view-chat').classList.add('hidden'); Conversations.render(); },
   renderMessages(){
@@ -2820,55 +2887,44 @@ const SettingsPanel = {
 /* ---------- PREMIUM ---------- */
 const Premium = {
   plans:[
-    { id:'1m', label:'1 mês', price:'R$ 39,90', perMonth:'R$ 39,90/mês' },
-    { id:'3m', label:'3 meses', price:'R$ 89,90', perMonth:'R$ 29,97/mês', best:true },
-    { id:'12m', label:'12 meses', price:'R$ 239,90', perMonth:'R$ 19,99/mês' }
+    { id:'weekly', label:'Semanal', price:'R$ 6,99', note:'Cobrado semanalmente', url: PREMIUM_WEEKLY_CHECKOUT_URL },
+    { id:'monthly', label:'Mensal', price:'R$ 19,90', note:'Cobrado mensalmente', url: PREMIUM_MONTHLY_CHECKOUT_URL, best:true },
+    { id:'lifetime', label:'Vitalício', price:'R$ 69,90', note:'Pagamento único', url: PREMIUM_LIFETIME_CHECKOUT_URL }
   ],
   open(){
     const me = DataService.auth.getCurrentUser();
     const content = document.getElementById('premium-page-content');
     content.innerHTML = `
       <h2 style="text-align:center;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px;">${icon('crown',22)} Cupido Cristão Premium</h2>
-      <p class="muted small text-center" style="margin-bottom:18px;">Dê o próximo passo nas suas conexões.</p>
-      <div class="benefit-row"><div class="b-icon">${icon('heart',20)}</div><div><b>Curtidas ilimitadas</b><div class="small muted">Conheça quantas pessoas quiser.</div></div></div>
+      <p class="muted small text-center" style="margin-bottom:18px;">Conheça mais pessoas e tenha mais possibilidades de encontrar alguém especial.</p>
+      <div class="benefit-row"><div class="b-icon">${icon('heart',20)}</div><div><b>Mais curtidas</b><div class="small muted">Conheça mais pessoas todos os dias.</div></div></div>
       <div class="benefit-row"><div class="b-icon">${icon('eye',20)}</div><div><b>Ver quem curtiu você</b><div class="small muted">Descubra logo quem já se interessou.</div></div></div>
-      <div class="benefit-row"><div class="b-icon">${icon('chat',20)}</div><div><b>Enviar mensagens</b><div class="small muted">Converse livremente com seus Matches.</div></div></div>
-      <div class="benefit-row"><div class="b-icon">${icon('crown',20)}</div><div><b>Destaque seu perfil</b><div class="small muted">Apareça primeiro para mais pessoas.</div></div></div>
+      <div class="benefit-row"><div class="b-icon">${icon('chat',20)}</div><div><b>Conversar com seus Matches</b><div class="small muted">Envie mensagens livremente.</div></div></div>
+      <div class="benefit-row"><div class="b-icon">${icon('compass',20)}</div><div><b>Descobrir mais pessoas</b><div class="small muted">Amplie seu alcance na busca.</div></div></div>
+      ${me.isPremium ? `<div class="premium-banner" style="margin-top:18px;"><span class="icon">${icon('check',22)}</span><div>Você já é Premium. Aproveite todos os benefícios.</div></div>` : `
       <div style="margin-top:18px;">
         ${this.plans.map(p=>`
-          <div class="plan-card ${State.selectedPlan===p.id?'selected':''}" onclick="Premium.selectPlan('${p.id}')">
+          <div class="plan-card">
             ${p.best?'<div class="best-tag">MAIS POPULAR</div>':''}
             <div class="row-between"><b>${p.label}</b><b>${p.price}</b></div>
-            <div class="small muted">${p.perMonth}</div>
+            <div class="small muted" style="margin-bottom:12px;">${p.note}</div>
+            <button class="btn btn-gold btn-block btn-sm" onclick="Premium.subscribe('${p.id}')">Assinar Premium</button>
           </div>`).join('')}
-      </div>
-      ${me.isPremium ? `<div class="premium-banner"><span class="icon">${icon('check',22)}</span><div>Você já é Premium. Aproveite todos os benefícios.</div></div>` :
-      `<button class="btn btn-gold btn-block" style="margin-top:8px;" onclick="Premium.subscribe()">${PREMIUM_CHECKOUT_URL ? 'Assinar Premium' : 'Assinar Premium (teste)'}</button>
-       <p class="faint small text-center" style="margin-top:10px;">${PREMIUM_CHECKOUT_URL ? 'Você será redirecionado ao checkout seguro para concluir o pagamento.' : 'Nenhum checkout de pagamento foi configurado ainda (PREMIUM_CHECKOUT_URL). Este botão ativa o Premium apenas para fins de teste do protótipo.'}</p>`}
+      </div>`}
     `;
     Overlays.open('overlay-premium');
   },
-  selectPlan(id){ State.selectedPlan = id; this.open(); },
-  async subscribe(){
+  async subscribe(planId){
     const me = DataService.auth.getCurrentUser();
-    // ------------------------------------------------------------------
-    // Fluxo real de pagamento: quando PREMIUM_CHECKOUT_URL estiver
-    // configurada (ver seção 0 — CONFIGURAÇÃO), o clique em "Assinar
-    // Premium" abre o checkout de verdade em vez de ativar localmente.
-    // A confirmação definitiva do Premium, nesse caso, deve vir de um
-    // webhook do gateway para o backend (Supabase Edge Function), que
-    // grava em `subscriptions` — o app já lê esse status de lá.
-    // ------------------------------------------------------------------
-    if(PREMIUM_CHECKOUT_URL){
-      window.open(PREMIUM_CHECKOUT_URL, '_blank');
+    const plan = this.plans.find(p=>p.id===planId) || this.plans[1];
+    if(plan.url){
+      window.open(plan.url, '_blank');
       return;
     }
-    // Sem checkout configurado ainda: ativação de teste do protótipo,
-    // claramente identificada como tal (ver rótulo no botão).
     await DataService.profiles.update(me.id, { isPremium:true });
     SupabaseBackend.setPremium(me.id, true, null); // best-effort
     DataService.notifications.add(me.id,'premium','Assinatura Premium ativada.','crown');
-    toast('Assinatura Premium ativada (modo de teste do protótipo).');
+    toast('Assinatura Premium ativada com sucesso.');
     Overlays.close('overlay-premium');
     Discover.updateLikesCounter();
     LikesYou.updateBadge();
@@ -3005,6 +3061,7 @@ const Admin = {
 (async function init(){
   DB = Store.get();
   DB.session = DB.session || { currentUserId:null, lastTab:'discover' };
+  Overlays.init();
 
   let current = DataService.auth.getCurrentUser();
 
@@ -3037,6 +3094,7 @@ const Admin = {
   Conversations.updateBadge();
   LikesYou.updateBadge();
   MatchScheduler.startPolling();
+    ActivityHeartbeat.start();
 })();
 </script>
 </body>
